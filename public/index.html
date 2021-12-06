@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Sign-in</title>
+  </head>
+  <body>
+    <h1>Google Sign-in</h1>
+    <hr />
+
+    <div
+      id="g_id_onload"
+      data-client_id="800263080854-47t429rbem8h9q47uom2mcr4q9steeea.apps.googleusercontent.com"
+      data-auto_prompt="false"
+      data-callback="handleCredentialResponse"
+    ></div>
+    <div
+      class="g_id_signin"
+      data-type="standard"
+      data-size="large"
+      data-theme="outline"
+      data-text="sign_in_with"
+      data-shape="rectangular"
+      data-logo_alignment="left"
+    ></div>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <button id="google_signout">Sign Out</button>
+
+    <script>
+      function handleCredentialResponse(response) {
+        // console.log("id token", response.credential);
+        const body = { id_token: response.credential };
+
+        const url = window.location.hostname.includes("localhost")
+          ? "http://localhost:3000/api/auth/google"
+          : "https://restserver-fher.herokuapp.com/api/auth/google";
+
+        fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        })
+          .then((resp) => resp.json())
+          .then((resp) => {
+            console.log(resp);
+            localStorage.setItem("email", resp.user.mail);
+          })
+          .catch(console.warn);
+      }
+
+      const button = document.getElementById("google_signout");
+
+      button.onclick = () => {
+        console.log("click");
+        console.log(google.accounts.id);
+
+        google.accounts.id.revoke(localStorage.getItem("email"), (done) => {
+          localStorage.clear();
+          location.reload();
+        });
+      };
+    </script>
+  </body>
+</html>
